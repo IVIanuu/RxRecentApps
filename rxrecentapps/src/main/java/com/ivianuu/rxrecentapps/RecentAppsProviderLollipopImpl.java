@@ -17,20 +17,18 @@
 package com.ivianuu.rxrecentapps;
 
 import android.app.usage.UsageEvents;
-import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 /**
  * Lollipop implementation of an recent apps provider
@@ -38,16 +36,15 @@ import java.util.TreeMap;
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
 
-    private static final Comparator<UsageStats> COMPARATOR
-            = (o1, o2) -> Long.compare(o2.getLastTimeUsed(), o1.getLastTimeUsed());
     private static final long ONE_HOUR = 1000 * 3600;
 
     private final UsageStatsManager usageStatsManager;
+    private final PackageManager packageManager;
 
-    private List<UsageStats> stats;
-
-    private RecentAppsProviderLollipopImpl(UsageStatsManager usageStatsManager) {
+    private RecentAppsProviderLollipopImpl(UsageStatsManager usageStatsManager,
+                                           PackageManager packageManager) {
         this.usageStatsManager = usageStatsManager;
+        this.packageManager = packageManager;
     }
 
     /**
@@ -56,7 +53,8 @@ final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
     @NonNull
     static RecentAppsProvider create(@NonNull Context context) {
         return new RecentAppsProviderLollipopImpl(
-                (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE));
+                (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE),
+                context.getPackageManager());
     }
 
     @NonNull
@@ -64,17 +62,31 @@ final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
     public List<String> getRecentApps(int limit) {
         List<String> recentApps = new ArrayList<>();
 
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        List<ResolveInfo> installedApps = packageManager.queryIntentActivities(mainIntent, 0);
+        List<String> installedPackages = new ArrayList<>();
+        for (ResolveInfo resolveInfo : installedApps)
+            installedPackages.add(resolveInfo.activityInfo.packageName);
+
         long now = System.currentTimeMillis();
 
-        stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY, now - ONE_HOUR, now);
-        if (stats != null) {
-            Collections.sort(stats, COMPARATOR);
-
-            for (UsageStats usageStats : stats) {
-                if (recentApps.size() >= limit) break;
-                recentApps.add(usageStats.getPackageName());
+        UsageEvents usageEvents = usageStatsManager.queryEvents(now - ONE_HOUR, now);
+        UsageEvents.Event event = new UsageEvents.Event();
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event);
+            if (event.getEventType() != UsageEvents.Event.MOVE_TO_FOREGROUND) continue;
+            if (installedPackages.contains(event.getPackageName())) {
+                if (recentApps.contains(event.getPackageName())) {
+                    recentApps.remove(event.getPackageName());
+                }
+                recentApps.add(event.getPackageName());
             }
+        }
+
+        Collections.reverse(recentApps);
+
+        if (recentApps.size() > limit) {
+            recentApps.subList(limit, recentApps.size()).clear();
         }
 
         return recentApps;

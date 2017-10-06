@@ -33,9 +33,6 @@ final class RecentAppsProviderIceCreamSandwichImpl implements RecentAppsProvider
     private final ActivityManager activityManager;
     private final PackageManager packageManager;
 
-    private List<ActivityManager.RunningTaskInfo> runningTasks;
-    private PackageInfo packageInfo;
-
     private RecentAppsProviderIceCreamSandwichImpl(ActivityManager activityManager,
                                                    PackageManager packageManager) {
         this.activityManager = activityManager;
@@ -56,10 +53,11 @@ final class RecentAppsProviderIceCreamSandwichImpl implements RecentAppsProvider
     public List<String> getRecentApps(int limit) {
         List<String> recentApps = new ArrayList<>();
 
-        runningTasks = activityManager.getRunningTasks(limit);
+        List<ActivityManager.RunningTaskInfo> runningTasks = activityManager.getRunningTasks(limit);
 
         if (runningTasks != null) {
             try {
+                PackageInfo packageInfo;
                 for (ActivityManager.RunningTaskInfo taskInfo : runningTasks) {
                     packageInfo = packageManager.getPackageInfo(taskInfo.topActivity.getPackageName(), 0);
                     if (packageInfo != null) {
