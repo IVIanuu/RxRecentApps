@@ -36,8 +36,6 @@ import java.util.List;
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
 
-    private static final long ONE_HOUR = 1000 * 3600;
-
     private final UsageStatsManager usageStatsManager;
     private final PackageManager packageManager;
 
@@ -70,7 +68,7 @@ final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
 
         long now = System.currentTimeMillis();
 
-        UsageEvents usageEvents = usageStatsManager.queryEvents(now - ONE_HOUR, now);
+        UsageEvents usageEvents = usageStatsManager.queryEvents(now - 1000 * 3600, now);
         UsageEvents.Event event = new UsageEvents.Event();
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event);
