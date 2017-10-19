@@ -112,6 +112,7 @@ public final class RxRecentApps {
         checkNotNull(timeUnit, "timeUnit == null");
         return Flowable.interval(period, timeUnit)
                 .subscribeOn(Schedulers.io())
+                .startWith(0L)
                 .flatMapSingle(__ -> getRecentApps(limit))
                 .distinctUntilChanged()
                 .onBackpressureLatest();
@@ -165,6 +166,7 @@ public final class RxRecentApps {
         checkNotNull(timeUnit, "timeUnit == null");
         return Flowable.interval(period, timeUnit)
                 .subscribeOn(Schedulers.io())
+                .startWith(0L)
                 .flatMapMaybe(__ -> getCurrentApp())
                 .distinctUntilChanged()
                 .onBackpressureLatest();
