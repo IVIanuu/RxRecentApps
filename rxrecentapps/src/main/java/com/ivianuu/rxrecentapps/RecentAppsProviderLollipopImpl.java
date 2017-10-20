@@ -37,12 +37,19 @@ import java.util.List;
 final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
 
     private final UsageStatsManager usageStatsManager;
-    private final PackageManager packageManager;
+
+    private final List<String> installedPackages = new ArrayList<>();
 
     private RecentAppsProviderLollipopImpl(UsageStatsManager usageStatsManager,
                                            PackageManager packageManager) {
         this.usageStatsManager = usageStatsManager;
-        this.packageManager = packageManager;
+
+        // get installed packages
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        List<ResolveInfo> installedApps = packageManager.queryIntentActivities(mainIntent, 0);
+        for (ResolveInfo resolveInfo : installedApps) {
+            installedPackages.add(resolveInfo.activityInfo.packageName);
+        }
     }
 
     /**
@@ -60,25 +67,20 @@ final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
     public List<String> getRecentApps(int limit) {
         List<String> recentApps = new ArrayList<>();
 
-        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-        List<ResolveInfo> installedApps = packageManager.queryIntentActivities(mainIntent, 0);
-        List<String> installedPackages = new ArrayList<>();
-        for (ResolveInfo resolveInfo : installedApps)
-            installedPackages.add(resolveInfo.activityInfo.packageName);
-
         long now = System.currentTimeMillis();
 
         UsageEvents usageEvents = usageStatsManager.queryEvents(now - 1000 * 3600, now);
         UsageEvents.Event event = new UsageEvents.Event();
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event);
-            if (event.getEventType() != UsageEvents.Event.MOVE_TO_FOREGROUND) continue;
-            if (installedPackages.contains(event.getPackageName())) {
-                if (recentApps.contains(event.getPackageName())) {
-                    recentApps.remove(event.getPackageName());
-                }
-                recentApps.add(event.getPackageName());
+            // filter some crap out
+            if (event.getEventType() != UsageEvents.Event.MOVE_TO_FOREGROUND
+                    || !installedPackages.contains(event.getPackageName())) continue;
+            // remove the older entry if the list already contains the package
+            if (recentApps.contains(event.getPackageName())) {
+                recentApps.remove(event.getPackageName());
             }
+            recentApps.add(event.getPackageName());
         }
 
         Collections.reverse(recentApps);
