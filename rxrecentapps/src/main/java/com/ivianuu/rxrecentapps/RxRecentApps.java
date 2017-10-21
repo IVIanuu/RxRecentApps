@@ -52,9 +52,9 @@ public final class RxRecentApps {
         checkNotNull(context, "context == null");
         RecentAppsProvider recentAppsProvider;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            recentAppsProvider = RecentAppsProviderLollipopImpl.create(context);
+            recentAppsProvider = LollipopRecentAppsProvider.create(context);
         } else {
-            recentAppsProvider = RecentAppsProviderIceCreamSandwichImpl.create(context);
+            recentAppsProvider = IceCreamSandwichRecentAppsProvider.create(context);
         }
         return new RxRecentApps(recentAppsProvider);
     }

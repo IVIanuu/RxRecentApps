@@ -28,13 +28,13 @@ import java.util.List;
 /**
  * Ice cream sandwich implementation of an recent apps provider
  */
-final class RecentAppsProviderIceCreamSandwichImpl implements RecentAppsProvider {
+final class IceCreamSandwichRecentAppsProvider implements RecentAppsProvider {
 
     private final ActivityManager activityManager;
     private final PackageManager packageManager;
 
-    private RecentAppsProviderIceCreamSandwichImpl(ActivityManager activityManager,
-                                                   PackageManager packageManager) {
+    private IceCreamSandwichRecentAppsProvider(ActivityManager activityManager,
+                                               PackageManager packageManager) {
         this.activityManager = activityManager;
         this.packageManager = packageManager;
     }
@@ -44,7 +44,7 @@ final class RecentAppsProviderIceCreamSandwichImpl implements RecentAppsProvider
      */
     @NonNull
     static RecentAppsProvider create(@NonNull Context context) {
-        return new RecentAppsProviderIceCreamSandwichImpl(
+        return new IceCreamSandwichRecentAppsProvider(
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE), context.getPackageManager());
     }
 

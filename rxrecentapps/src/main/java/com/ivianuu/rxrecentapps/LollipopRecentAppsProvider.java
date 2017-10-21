@@ -34,14 +34,14 @@ import java.util.List;
  * Lollipop implementation of an recent apps provider
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
+final class LollipopRecentAppsProvider implements RecentAppsProvider {
 
     private final UsageStatsManager usageStatsManager;
 
     private final List<String> installedPackages = new ArrayList<>();
 
-    private RecentAppsProviderLollipopImpl(UsageStatsManager usageStatsManager,
-                                           PackageManager packageManager) {
+    private LollipopRecentAppsProvider(UsageStatsManager usageStatsManager,
+                                       PackageManager packageManager) {
         this.usageStatsManager = usageStatsManager;
 
         // get installed packages
@@ -57,7 +57,7 @@ final class RecentAppsProviderLollipopImpl implements RecentAppsProvider {
      */
     @NonNull
     static RecentAppsProvider create(@NonNull Context context) {
-        return new RecentAppsProviderLollipopImpl(
+        return new LollipopRecentAppsProvider(
                 (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE),
                 context.getPackageManager());
     }
