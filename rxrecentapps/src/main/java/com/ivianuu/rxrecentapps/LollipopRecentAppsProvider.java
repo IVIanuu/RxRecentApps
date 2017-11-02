@@ -55,8 +55,7 @@ final class LollipopRecentAppsProvider implements RecentAppsProvider {
     /**
      * Creates a new lollipop recent apps provider
      */
-    @NonNull
-    static RecentAppsProvider create(@NonNull Context context) {
+    @NonNull public static RecentAppsProvider create(@NonNull Context context) {
         return new LollipopRecentAppsProvider(
                 (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE),
                 context.getPackageManager());

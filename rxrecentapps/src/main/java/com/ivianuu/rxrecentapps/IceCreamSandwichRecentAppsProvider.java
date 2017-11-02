@@ -42,8 +42,7 @@ final class IceCreamSandwichRecentAppsProvider implements RecentAppsProvider {
     /**
      * Returns a new ice cream sandwich recent apps provider
      */
-    @NonNull
-    static RecentAppsProvider create(@NonNull Context context) {
+    @NonNull public static RecentAppsProvider create(@NonNull Context context) {
         return new IceCreamSandwichRecentAppsProvider(
                 (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE), context.getPackageManager());
     }
