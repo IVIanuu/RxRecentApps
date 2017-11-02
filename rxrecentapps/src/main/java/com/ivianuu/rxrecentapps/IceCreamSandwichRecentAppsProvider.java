@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Ice cream sandwich implementation of an recent apps provider
  */
-final class IceCreamSandwichRecentAppsProvider implements RecentAppsProvider {
+public final class IceCreamSandwichRecentAppsProvider implements RecentAppsProvider {
 
     private final ActivityManager activityManager;
     private final PackageManager packageManager;

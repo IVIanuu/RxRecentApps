@@ -34,7 +34,7 @@ import java.util.List;
  * Lollipop implementation of an recent apps provider
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-final class LollipopRecentAppsProvider implements RecentAppsProvider {
+public final class LollipopRecentAppsProvider implements RecentAppsProvider {
 
     private final UsageStatsManager usageStatsManager;
 
