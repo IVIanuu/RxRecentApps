@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Provides recent apps
  */
-interface RecentAppsProvider {
+public interface RecentAppsProvider {
     /**
      * Returns the recent apps
      */

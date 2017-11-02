@@ -47,8 +47,7 @@ public final class RxRecentApps {
     /**
      * Returns a new rx recent apps instance
      */
-    @NonNull
-    public static RxRecentApps create(@NonNull Context context) {
+    @NonNull public static RxRecentApps create(@NonNull Context context) {
         checkNotNull(context, "context == null");
         RecentAppsProvider recentAppsProvider;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -56,6 +55,11 @@ public final class RxRecentApps {
         } else {
             recentAppsProvider = IceCreamSandwichRecentAppsProvider.create(context);
         }
+        return create(recentAppsProvider);
+    }
+
+    @NonNull public static RxRecentApps create(@NonNull RecentAppsProvider recentAppsProvider) {
+        checkNotNull(recentAppsProvider, "recentAppsProvider == null");
         return new RxRecentApps(recentAppsProvider);
     }
 
