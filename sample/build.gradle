@@ -15,10 +15,10 @@
  */
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
     defaultConfig {
         applicationId "com.ivianuu.rxrecentapps.sample"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -34,9 +34,12 @@ android {
 }
 
 dependencies {
-    // RxForegroundApp
-    implementation project(':rxrecentapps')
-
     // Android Support
     implementation rootProject.ext.supportAppCompat
+
+    // Kotlin
+    implementation rootProject.ext.kotlinStdlib
+
+    // RxRecentApps
+    implementation project(':rxrecentapps')
 }
