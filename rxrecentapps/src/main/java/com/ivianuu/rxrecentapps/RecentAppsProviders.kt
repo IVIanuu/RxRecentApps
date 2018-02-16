@@ -31,17 +31,14 @@ import java.util.*
  * Provides recent apps
  */
 interface RecentAppsProvider {
-    /**
-     * Returns the recent apps
-     */
+
     fun getRecentApps(limit: Int): List<String>
+
 }
 
-/**
- * Ice cream sandwich implementation of an [RecentAppsProvider]
- */
-class IceCreamSandwichRecentAppsProvider private constructor(private val activityManager: ActivityManager,
-                                                             private val packageManager: PackageManager
+internal class IceCreamSandwichRecentAppsProvider private constructor(
+    private val activityManager: ActivityManager,
+    private val packageManager: PackageManager
 ) : RecentAppsProvider {
 
     override fun getRecentApps(limit: Int): List<String> {
@@ -69,39 +66,28 @@ class IceCreamSandwichRecentAppsProvider private constructor(private val activit
 
     companion object {
 
-        /**
-         * Returns a new ice cream sandwich recent apps provider
-         */
         @JvmStatic
         fun create(context: Context): RecentAppsProvider {
             return IceCreamSandwichRecentAppsProvider(
                     context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager,
                     context.packageManager)
         }
+
     }
 }
 
-/**
- * Lollipop implementation of an [RecentAppsProvider]
- */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class LollipopRecentAppsProvider private constructor(private val usageStatsManager: UsageStatsManager,
-                                                     packageManager: PackageManager
+internal class LollipopRecentAppsProvider private constructor(
+    private val usageStatsManager: UsageStatsManager,
+    private val packageManager: PackageManager
 ) : RecentAppsProvider {
 
-    private val installedPackages = ArrayList<String>()
-
-    init {
-
+    override fun getRecentApps(limit: Int): List<String> {
         // get installed packages
         val mainIntent = Intent(Intent.ACTION_MAIN, null)
         val installedApps = packageManager.queryIntentActivities(mainIntent, 0)
-        for (resolveInfo in installedApps) {
-            installedPackages.add(resolveInfo.activityInfo.packageName)
-        }
-    }
+            .map { it.activityInfo.packageName }
 
-    override fun getRecentApps(limit: Int): List<String> {
         val recentApps = ArrayList<String>()
 
         val now = System.currentTimeMillis()
@@ -111,9 +97,10 @@ class LollipopRecentAppsProvider private constructor(private val usageStatsManag
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event)
             // filter some crap out
-            if (event.eventType != UsageEvents.Event.MOVE_TO_FOREGROUND || !installedPackages.contains(
+            if (event.eventType != UsageEvents.Event.MOVE_TO_FOREGROUND || !installedApps.contains(
                     event.packageName))
                 continue
+
             // remove the older entry if the list already contains the package
             if (recentApps.contains(event.packageName)) {
                 recentApps.remove(event.packageName)
@@ -132,10 +119,6 @@ class LollipopRecentAppsProvider private constructor(private val usageStatsManag
 
     companion object {
 
-        /**
-         * Creates a new lollipop recent apps provider
-         */
-        @JvmStatic
         fun create(context: Context): RecentAppsProvider {
             return LollipopRecentAppsProvider(
                     context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager,

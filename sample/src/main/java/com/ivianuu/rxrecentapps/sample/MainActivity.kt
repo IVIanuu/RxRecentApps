@@ -18,14 +18,14 @@ class MainActivity : AppCompatActivity() {
 
         val rxRecentApps = RxRecentApps.create(this)
 
-        compositeDisposable.add(
-                rxRecentApps.observeRecentApps(10)
-                        .map { strings ->
-                            removePackages(strings.toMutableList())
-                            strings
-                        }
-                        .distinctUntilChanged()
-                        .subscribe { s -> Log.d("testtt", s.toString()) })
+        rxRecentApps.observeRecentApps(10)
+            .map { strings ->
+                removePackages(strings.toMutableList())
+                strings
+            }
+            .distinctUntilChanged()
+            .subscribe { s -> Log.d("testtt", s.toString()) }
+            .let { compositeDisposable.add(it) }
     }
 
     private fun removePackages(packages: MutableList<String>) {

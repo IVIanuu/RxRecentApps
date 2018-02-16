@@ -19,7 +19,6 @@ package com.ivianuu.rxrecentapps
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import android.support.annotation.CheckResult
 import android.support.annotation.RequiresPermission
 import io.reactivex.Flowable
 import io.reactivex.Maybe
@@ -37,7 +36,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     fun getRecentApps(limit: Int): Single<List<String>> =
             Single.fromCallable<List<String>> { recentAppsProvider.getRecentApps(limit) }
 
@@ -46,7 +44,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     @JvmOverloads fun observeRecentApps(limit: Int = 10,
                                         period: Long = 1,
                                         timeUnit: TimeUnit = TimeUnit.SECONDS
@@ -63,7 +60,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     fun getCurrentApp(): Maybe<String> =
             getRecentApps(1)
                     .filter { it.isNotEmpty() }
@@ -74,7 +70,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     fun getCurrentApp(defaultPackage: String): Single<String> =
             getCurrentApp()
                     .defaultIfEmpty(defaultPackage)
@@ -86,7 +81,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     @JvmOverloads
     fun observeCurrentApp(period: Long = 1,
                           timeUnit: TimeUnit = TimeUnit.SECONDS
@@ -103,7 +97,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     fun getLastApp(): Maybe<String> =
             getRecentApps(2)
                     .filter { recentApps -> recentApps.size >= 2 }
@@ -114,7 +107,6 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
      */
     @RequiresPermission(
             allOf = arrayOf(Manifest.permission.GET_TASKS, Manifest.permission.PACKAGE_USAGE_STATS))
-    @CheckResult
     fun getLastApp(defaultPackage: String): Single<String> {
         return getLastApp()
                 .defaultIfEmpty(defaultPackage)
@@ -123,23 +115,16 @@ class RxRecentApps private constructor(private val recentAppsProvider: RecentApp
 
     companion object {
 
-        /**
-         * Returns a [RxRecentApps] instance
-         */
         @JvmStatic
         fun create(context: Context): RxRecentApps {
-            val recentAppsProvider: RecentAppsProvider
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                recentAppsProvider = LollipopRecentAppsProvider.create(context)
+            val recentAppsProvider = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                LollipopRecentAppsProvider.create(context)
             } else {
-                recentAppsProvider = IceCreamSandwichRecentAppsProvider.create(context)
+                IceCreamSandwichRecentAppsProvider.create(context)
             }
             return create(recentAppsProvider)
         }
 
-        /**
-         * Returns a [RxRecentApps] instance
-         */
         @JvmStatic
         fun create(recentAppsProvider: RecentAppsProvider): RxRecentApps {
             return RxRecentApps(recentAppsProvider)
