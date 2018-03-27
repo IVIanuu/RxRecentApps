@@ -42,26 +42,30 @@ internal class IceCreamSandwichRecentAppsProvider private constructor(
 ) : RecentAppsProvider {
 
     override fun getRecentApps(limit: Int): List<String> {
-        val recentApps = ArrayList<String>()
+        return try {
+            val recentApps = ArrayList<String>()
 
-        val runningTasks = activityManager.getRunningTasks(limit)
+            val runningTasks = activityManager.getRunningTasks(limit)
 
-        if (runningTasks != null) {
-            try {
-                var packageInfo: PackageInfo?
-                for (taskInfo in runningTasks) {
-                    packageInfo = packageManager.getPackageInfo(taskInfo.topActivity.packageName, 0)
-                    if (packageInfo != null) {
-                        recentApps.add(packageInfo.applicationInfo.packageName)
+            if (runningTasks != null) {
+                try {
+                    var packageInfo: PackageInfo?
+                    for (taskInfo in runningTasks) {
+                        packageInfo = packageManager.getPackageInfo(taskInfo.topActivity.packageName, 0)
+                        if (packageInfo != null) {
+                            recentApps.add(packageInfo.applicationInfo.packageName)
+                        }
                     }
+                } catch (e: PackageManager.NameNotFoundException) {
+                    // ignore
                 }
-            } catch (e: PackageManager.NameNotFoundException) {
-                // ignore
+
             }
 
+            recentApps
+        } catch (e: Exception) {
+            emptyList()
         }
-
-        return recentApps
     }
 
     companion object {
@@ -83,38 +87,42 @@ internal class LollipopRecentAppsProvider private constructor(
 ) : RecentAppsProvider {
 
     override fun getRecentApps(limit: Int): List<String> {
-        // get installed packages
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        val installedApps = packageManager.queryIntentActivities(mainIntent, 0)
-            .map { it.activityInfo.packageName }
+        return try {
+            // get installed packages
+            val mainIntent = Intent(Intent.ACTION_MAIN, null)
+            val installedApps = packageManager.queryIntentActivities(mainIntent, 0)
+                .map { it.activityInfo.packageName }
 
-        val recentApps = ArrayList<String>()
+            val recentApps = ArrayList<String>()
 
-        val now = System.currentTimeMillis()
+            val now = System.currentTimeMillis()
 
-        val usageEvents = usageStatsManager.queryEvents(now - 1000 * 3600, now)
-        val event = UsageEvents.Event()
-        while (usageEvents.hasNextEvent()) {
-            usageEvents.getNextEvent(event)
-            // filter some crap out
-            if (event.eventType != UsageEvents.Event.MOVE_TO_FOREGROUND || !installedApps.contains(
-                    event.packageName))
-                continue
+            val usageEvents = usageStatsManager.queryEvents(now - 1000 * 3600, now)
+            val event = UsageEvents.Event()
+            while (usageEvents.hasNextEvent()) {
+                usageEvents.getNextEvent(event)
+                // filter some crap out
+                if (event.eventType != UsageEvents.Event.MOVE_TO_FOREGROUND || !installedApps.contains(
+                        event.packageName))
+                    continue
 
-            // remove the older entry if the list already contains the package
-            if (recentApps.contains(event.packageName)) {
-                recentApps.remove(event.packageName)
+                // remove the older entry if the list already contains the package
+                if (recentApps.contains(event.packageName)) {
+                    recentApps.remove(event.packageName)
+                }
+                recentApps.add(event.packageName)
             }
-            recentApps.add(event.packageName)
+
+            recentApps.reverse()
+
+            if (recentApps.size > limit) {
+                recentApps.subList(limit, recentApps.size).clear()
+            }
+
+            recentApps
+        } catch (e: Exception) {
+            emptyList()
         }
-
-        Collections.reverse(recentApps)
-
-        if (recentApps.size > limit) {
-            recentApps.subList(limit, recentApps.size).clear()
-        }
-
-        return recentApps
     }
 
     companion object {
